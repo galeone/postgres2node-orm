@@ -31,22 +31,22 @@ module.exports = (db, cb) => {
     {
 HERE
     foreach( split(/\n/, $2, -1) ) {
-		if( (defined $_ ) and !($_ =~ /^$/)) {
-			my ($name, $type, $options) = get_options($_);
+    if( (defined $_ ) and !($_ =~ /^$/)) {
+            my ($name, $type, $options) = get_options($_);
             if($name =~ /primary|constraint/i) {
                 if($_ =~ /primary key\s*\(([a-z0-9_]+)\)/i ) {
                     $key = $1;
                 }
                 next;
             }
-			$module .= "        $name : " . &get_fields($type, $options) .",\n";
-			$enter = 1;
-		}
+            $module .= "        $name : " . &get_fields($type, $options) .",\n";
+            $enter = 1;
+        }
     }
-	#remove ,\n
-	if($enter) {
-		$module = substr $module, 0, -2;
-	}
+    #remove ,\n
+    if($enter) {
+        $module = substr $module, 0, -2;
+    }
     $module .=
 <<HERE;
     
@@ -107,11 +107,11 @@ sub get_fields {
     );
        
        return '' if $_type eq "error";
-	 
-	 if($_type eq "float") {
-		$rational = "true";
+    
+    if($_type eq "float") {
+        $rational = "true";
         $_type    = "number";
-	 }
+    }
      elsif($_type eq "integer") {
         $rational = "false";
         $_type    = "number";
@@ -127,18 +127,18 @@ sub get_fields {
     }
 
     return
-	"{ type: '$_type', required: " .
-	(
-		$options =~ /not null/i
-			? "true"
-			: "false"
-	)
+    "{ type: '$_type', required: " .
+    (
+        $options =~ /not null/i
+            ? "true"
+            : "false"
+    )
     .
     (
-		$type_size ne '0'
-			? ", size: $type_size"
-			: ''
-	)
+        $type_size ne '0'
+            ? ", size: $type_size"
+            : ''
+    )
     .
     (
         $rational  ne '0'
@@ -164,6 +164,6 @@ sub get_options {
         $ret[1] = "$+{type}";
         $ret[2] = "$+{options}" || "";
     }
-	die("unable to extract name or type from: $_[0]: $ret[0] $ret[1]") if $ret[0] eq "" or $ret[1] eq "";
+    die("unable to extract name or type from: $_[0]: $ret[0] $ret[1]") if $ret[0] eq "" or $ret[1] eq "";
     return @ret;
 }
