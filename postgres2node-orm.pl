@@ -34,8 +34,16 @@ HERE
     if( (defined $_ ) and !($_ =~ /^$/)) {
             my ($name, $type, $options) = get_options($_);
             if($name =~ /primary|constraint/i) {
-                if($_ =~ /primary key\s*\(([a-z0-9_]+)\)/i ) {
-                    $key = $1;
+                if($_ =~ /primary key\s*\((.+?)\)/i ) {
+                    $key = "";
+                    foreach(split (',' , $1)) {
+                        my $value = $_;
+                        $value =~ s/'|"//g;
+                        print $value;
+                        $key .= "'$value',"
+                    }
+                    $key = substr $key, 0, -1;
+                    
                 }
                 next;
             }
@@ -55,7 +63,7 @@ HERE
     {
 HERE
     if($key ne "") {
-        $module .= "        id: '$key'";
+        $module .= "        id: [$key]";
     }
     $module .=
 <<HERE;
