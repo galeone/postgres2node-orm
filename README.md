@@ -70,3 +70,5 @@ module.exports = (db, cb) => {
     return cb();
 };
 ```
+
+In addition, the script will create a outputdir/index.ts in which there are present the load call for each table.

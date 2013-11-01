@@ -18,8 +18,11 @@ while(<$input>) {
 
 print "Parsing $filename, extracting tables\n";
 
+my @modules = ();
+
 while ( $fullfile =~ /CREATE TABLE ([a-z0-9_]+) \((.+?)\)\;/misg )
 {
+    push(@modules, $1);
     our ($module, $enter, $key);
 	$enter = 0;
     $key = "";
@@ -39,7 +42,6 @@ HERE
                     foreach(split (',' , $1)) {
                         my $value = $_;
                         $value =~ s/'|"//g;
-                        print $value;
                         $key .= "'$value',"
                     }
                     $key = substr $key, 0, -1;
@@ -79,6 +81,12 @@ HERE
     close($output);
 }
 close($input);
+
+print "Creating $outdir/index.ts";
+
+create_index(\@modules, $outdir);
+
+print "\nDone\n";
 
 exit(0);
 
@@ -174,4 +182,28 @@ sub get_options {
     }
     die("unable to extract name or type from: $_[0]: $ret[0] $ret[1]") if $ret[0] eq "" or $ret[1] eq "";
     return @ret;
+}
+
+sub create_index {
+    my($modules, $outdir) = @_;
+    
+    open my $out, '>', "$outdir/index.ts" or die("unable to create $outdir/index.ts");
+    
+    my $module = "module.exports = (db, cb) => {\n";
+    foreach(@$modules) {
+        $module .= 
+<<HERE;
+    db.load('$_', (err) => {
+        if(err) {
+            return cb(err);
+        }
+        return cb();
+    });
+
+HERE
+    }
+    $module .= "};";
+    
+    print $out $module;
+    close($out);
 }
