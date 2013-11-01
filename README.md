@@ -64,7 +64,7 @@ module.exports = (db, cb) => {
     },
     /* options */
     {
-        id: 'counter'
+        id: ['counter']
     });
     
     return cb();
