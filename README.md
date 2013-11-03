@@ -26,7 +26,7 @@ Example
 
 In my dump I've got a table definiton like:
 
-```dump
+```SQL
 CREATE TABLE users (
   id serial8 NOT NULL,
   stamp timestamp(0) WITH TIME ZONE NOT NULL DEFAULT NOW(),
