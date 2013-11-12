@@ -28,7 +28,9 @@ while ( $fullfile =~ /CREATE TABLE ([a-z0-9_]+) \((.+?)\)\;/misg )
     $key = "";
     $module =
 <<HERE;
-module.exports = (db, cb) => {
+import orm = require('orm');
+
+module.exports = (db: orm.ORM, cb: (err?:Error) => void) => {
     db.define("$1",
     /* definition */
     {
@@ -189,7 +191,7 @@ sub create_index {
     
     open my $out, '>', "$outdir/index.ts" or die("unable to create $outdir/index.ts");
     
-    my $module = "module.exports = (db, cb) => {\n";
+    my $module = "import orm = require('orm');\n\nmodule.exports = (db: orm.ORM, cb: (err?:Error) => void) => {\n";
     foreach(@$modules) {
         $module .= 
 <<HERE;
@@ -202,7 +204,7 @@ sub create_index {
 
 HERE
     }
-    $module .= "};";
+    $module .= "};\n\n";
     
     print $out $module;
     close($out);
