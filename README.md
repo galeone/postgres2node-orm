@@ -46,7 +46,9 @@ CREATE TABLE users (
 
 The output in `outputdir/users.ts` is
 ```TypeScript
-module.exports = (db, cb) => {
+import orm = require('orm');
+
+module.exports = (db: orm.ORM, cb: (err?:Error) => void) => {
     db.define("users",
     /* definition */
     {
