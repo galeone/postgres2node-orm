@@ -18,8 +18,9 @@ perl postgres2node-orm.pl databaseDefinition.sql outputdir
 Where `databaseDefinition.sql` is the schema dump and `outputdir` is an existing directory.
 
 It generates one file per table, in the current format: `table_name.ts`
+In addition, the script will create a outputdir/index.ts in which there are present the load call for each table and a module called `models` that contains all module definition as interface.
 
-The extension is for TypeScript file, but you can edit easily the script to generate .js files (and changing TypeScript closure `() => ` with  JavaScript closure`function ()`).
+The extension is for TypeScript file, but you can edit easily the script to generate .js files (and changing TypeScript closure `() => ` with  JavaScript closure`function ()`), and removing interfaces or adapt it in some way.
 
 Example
 ----------
@@ -72,8 +73,6 @@ module.exports = (db: orm.ORM, cb: (err?:Error) => void) => {
     return cb();
 };
 ```
-
-In addition, the script will create a outputdir/index.ts in which there are present the load call for each table and a module called `models` that contains all module definition as interface.
 
 Thus, the outputdir/index.ts will looks like:
 ```TypeScript
