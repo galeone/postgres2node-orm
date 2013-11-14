@@ -86,6 +86,7 @@ module.exports = (db: orm.ORM, cb: (err?:Error) => void) => {
         }
         return cb();
     });
+};
 
 //Interfaces
 
