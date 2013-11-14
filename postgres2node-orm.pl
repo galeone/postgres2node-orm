@@ -2,6 +2,7 @@
 
 use strict;
 use warnings;
+use Data::Dumper;
 
 #main
 
@@ -19,13 +20,15 @@ while(<$input>) {
 print "Parsing $filename, extracting tables\n";
 
 my @modules = ();
+my (%interfaces, %realInterfaces) = ((),());
 
 while ( $fullfile =~ /CREATE TABLE ([a-z0-9_]+) \((.+?)\)\;/misg )
 {
     push(@modules, $1);
-    our ($module, $enter, $key);
+    our ($module, $enter, $key, $tableName) = 
 	$enter = 0;
     $key = "";
+    $tableName = $1;
     $module =
 <<HERE;
 import orm = require('orm');
@@ -51,13 +54,19 @@ HERE
                 }
                 next;
             }
-            $module .= "        $name : " . &get_fields($type, $options) .",\n";
+            my ($definition, $internalType)  =  &get_fields($type, $options);
+            $internalType = $internalType eq "date" ? "Date" : $internalType eq "object" ? "JSON" :  $internalType eq "text" ? "string" :  $internalType eq "binary" ? "any" : $internalType;
+            $interfaces{$tableName} .= "        $name: $internalType;\n";
+            $module .= "        $name : " .$definition .",\n";
             $enter = 1;
         }
     }
     #remove ,\n
     if($enter) {
         $module = substr $module, 0, -2;
+        while(my ($key, $value) = each(%interfaces)) {
+            $realInterfaces{$key} =  substr $value , 0, -2;
+        }
     }
     $module .=
 <<HERE;
@@ -86,7 +95,7 @@ close($input);
 
 print "Creating $outdir/index.ts";
 
-create_index(\@modules, $outdir);
+create_index(\@modules, $outdir,\%realInterfaces);
 
 print "\nDone\n";
 
@@ -144,35 +153,39 @@ sub get_fields {
         $defaultValue = ", defaultValue: \"". ((substr $s, -1, 1) eq ',' ? (substr $s, 0 , -1)  : $s )   ."\"";
     }
 
-    return
-    "{ type: '$_type', required: " .
+    return # ($string, $type)
     (
-        $options =~ /not null/i
-            ? "true"
-            : "false"
-    )
-    .
-    (
-        $type_size ne '0'
-            ? ", size: $type_size"
+        "{ type: '$_type', required: " .
+        (
+            $options =~ /not null/i
+                ? "true"
+                : "false"
+        )
+        .
+        (
+            $type_size ne '0'
+                ? ", size: $type_size"
+                : ''
+            )
+        .
+        (
+            $rational  ne '0'
+                ? ", rational: $rational"
+                : ''
+        )
+        .
+        (
+            $time ne '0'
+            ? ", time: $time "
             : ''
-    )
-    .
-    (
-        $rational  ne '0'
-            ? ", rational: $rational"
-            : ''
-    )
-    .
-    (
-        $time ne '0'
-        ? ", time: $time "
-        : ''
-    )
-    .
-    $defaultValue
-    .
-    "}";
+        )
+        .
+        $defaultValue
+        .
+        "}"
+    ,
+        "$_type"
+    );
 }
 
 sub get_options {
@@ -187,7 +200,7 @@ sub get_options {
 }
 
 sub create_index {
-    my($modules, $outdir) = @_;
+    my($modules, $outdir, $interfaces) = @_;
     
     open my $out, '>', "$outdir/index.ts" or die("unable to create $outdir/index.ts");
     
@@ -204,7 +217,22 @@ sub create_index {
 
 HERE
     }
-    $module .= "};\n\n";
+    
+    $module .= "};\n\n//Interfaces\n\nmodule models {\n";
+    foreach(@$modules) {
+        $module .=
+<<HERE;
+    export interface $_ {
+HERE
+        $module .= $interfaces->{$_} . <<HERE;
+        
+    }
+
+HERE
+
+    }
+    
+    $module .= "}\nexport = models;";
     
     print $out $module;
     close($out);

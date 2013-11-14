@@ -73,4 +73,47 @@ module.exports = (db: orm.ORM, cb: (err?:Error) => void) => {
 };
 ```
 
-In addition, the script will create a outputdir/index.ts in which there are present the load call for each table.
+In addition, the script will create a outputdir/index.ts in which there are present the load call for each table and a module called `models` that contains all module definition as interface.
+
+Thus, the outputdir/index.ts will looks like:
+```TypeScript
+import orm = require('orm');
+
+module.exports = (db: orm.ORM, cb: (err?:Error) => void) => {
+    db.load('users', (err) => {
+        if(err) {
+            return cb(err);
+        }
+        return cb();
+    });
+
+//Interfaces
+
+module models {
+    export interface users {
+        id: number;
+        stamp: Date;
+        story: JSON;
+        private: boolean;
+        username: string;
+        password: string;
+        name: string;
+        surname: string;
+        email: string;
+        board_lang: string;
+        timezone: string
+    }
+}
+export = models;
+```
+In this way, you can import outputdir/models.ts and use these interfaces.
+
+Like:
+```TypeScript
+import models = require('outputdir/index');
+[...]
+orm.models["users"].get(id, (err, u: models.users) => {
+    new User(m.id, m.username, m.email); //where the constructor of User is defined like construct(public id: number, public username: string, public email: string);
+    //In this way types match and you can use autocompletion in u.<member>
+});
+```
