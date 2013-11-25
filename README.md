@@ -117,3 +117,7 @@ orm.models["users"].get(id, (err, u: models.users) => {
     //In this way types match and you can use autocompletion in u.<member>
 });
 ```
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/nerdzeu/postgres2node-orm/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
